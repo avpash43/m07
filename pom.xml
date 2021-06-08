@@ -14,11 +14,12 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
-    <kotlin.version>1.4.32</kotlin.version>
+    <kotlin.version>1.5.10</kotlin.version>
     <scala.major.version>2.12</scala.major.version>
     <scala.version>${scala.major.version}.10</scala.version>
 
-    <spark.version>3.1.1</spark.version>
+    <spark.version>3.1.2</spark.version>
+    <hadoop.version>3.3.0</hadoop.version>
 
     <isTestSkip>false</isTestSkip>
 
@@ -59,7 +60,7 @@
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-client</artifactId>
-      <version>3.2.0</version>
+      <version>${hadoop.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -88,12 +89,12 @@
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-azure</artifactId>
-      <version>3.2.0</version>
+      <version>${hadoop.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-azure-datalake</artifactId>
-      <version>3.2.0</version>
+      <version>${hadoop.version}</version>
     </dependency>
 
     <!--test-->
