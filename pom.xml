@@ -19,7 +19,7 @@
     <scala.version>${scala.major.version}.10</scala.version>
 
     <spark.version>3.1.2</spark.version>
-    <hadoop.version>3.3.0</hadoop.version>
+    <hadoop.version>3.3.1</hadoop.version>
 
     <isTestSkip>false</isTestSkip>
 
