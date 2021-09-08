@@ -1,7 +1,7 @@
 Data Mart Vusualisation
-![Alt text](vasualisation/max_avg_tmpr_c_for_bookings.jpg?raw=true "Title")
-![Alt text](vasualisation/top_10_busy_hotels_for_each_month_gold.jpg?raw=true "Title")
-![Alt text](vasualisation/top_10_hotels_with_max_abs_temp_diff_gold.jpg?raw=true "Title")
+![Alt text](visualisation/max_avg_tmpr_c_for_bookings.jpg?raw=true "Title")
+![Alt text](visualisation/top_10_busy_hotels_for_each_month_gold.jpg?raw=true "Title")
+![Alt text](visualisation/top_10_hotels_with_max_abs_temp_diff_gold.jpg?raw=true "Title")
 
 Plan damps stored in 'plan-dumps' folder.
 
