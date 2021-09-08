@@ -1,4 +1,4 @@
-Data Mart Vusualisation:
+# Data Mart Vusualisation:
 
 Top 10 hotels with max absolute temperature difference by month:
 
@@ -12,9 +12,7 @@ Wweather trend:
 
 ![Alt text](visualisation/top_10_hotels_with_max_abs_temp_diff_gold.jpg?raw=true "Title")
 
-Plan damps stored in 'plan-dumps' folder.
-
-
+###### Plan damps stored in 'plan-dumps' folder.
 
 
 * Add your code in `src/main/` if needed
