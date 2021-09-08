@@ -1,5 +1,11 @@
 # Data Mart Vusualisation:
 
+###### Plan damps stored in 'plan-dumps' folder.
+
+###### Result files stored in ADLS:
+
+![Alt text](visualisation/target_files.jpg?raw=true "Title")
+
 Top 10 hotels with max absolute temperature difference by month:
 
 ![Alt text](visualisation/max_avg_tmpr_c_for_bookings.jpg?raw=true "Title")
@@ -11,8 +17,6 @@ Top 10 busy (e.g., with the biggest visits count) hotels for each month:
 Wweather trend:
 
 ![Alt text](visualisation/top_10_hotels_with_max_abs_temp_diff_gold.jpg?raw=true "Title")
-
-###### Plan damps stored in 'plan-dumps' folder.
 
 
 * Add your code in `src/main/` if needed
