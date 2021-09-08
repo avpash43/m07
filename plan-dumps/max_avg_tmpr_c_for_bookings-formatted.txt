@@ -1,0 +1,46 @@
+EXPLAIN FORMATTED
+== Physical Plan ==
+AdaptiveSparkPlan (7)
++- TakeOrderedAndProject (6)
+   +- HashAggregate (5)
+      +- Exchange (4)
+         +- HashAggregate (3)
+            +- Project (2)
+               +- Scan parquet spark_sql_database.hotel_weather_silver (1)
+
+
+(1) Scan parquet spark_sql_database.hotel_weather_silver
+Output [5]: [avg_tmpr_c#5514, id#5519L, year#5524, month#5525, day#5526]
+Batched: true
+Location: PreparedDeltaFileIndex [dbfs:/user/hive/warehouse/spark_sql_database.db/hotel_weather_silver]
+ReadSchema: struct<avg_tmpr_c:double,id:bigint>
+
+(2) Project
+Output [3]: [avg_tmpr_c#5514, id#5519L, month#5525]
+Input [5]: [avg_tmpr_c#5514, id#5519L, year#5524, month#5525, day#5526]
+
+(3) HashAggregate
+Input [3]: [avg_tmpr_c#5514, id#5519L, month#5525]
+Keys [2]: [id#5519L, month#5525]
+Functions [2]: [partial_max(avg_tmpr_c#5514) AS max#5531, partial_min(avg_tmpr_c#5514) AS min#5533]
+Aggregate Attributes [2]: [max#5530, min#5532]
+Results [4]: [id#5519L, month#5525, max#5531, min#5533]
+
+(4) Exchange
+Input [4]: [id#5519L, month#5525, max#5531, min#5533]
+Arguments: hashpartitioning(id#5519L, month#5525, 200), ENSURE_REQUIREMENTS, [id=#3052]
+
+(5) HashAggregate
+Input [4]: [id#5519L, month#5525, max#5531, min#5533]
+Keys [2]: [id#5519L, month#5525]
+Functions [2]: [finalmerge_max(merge max#5531) AS max(avg_tmpr_c#5514)#5527, finalmerge_min(merge min#5533) AS min(avg_tmpr_c#5514)#5528]
+Aggregate Attributes [2]: [max(avg_tmpr_c#5514)#5527, min(avg_tmpr_c#5514)#5528]
+Results [3]: [id#5519L, month#5525, (max(avg_tmpr_c#5514)#5527 - min(avg_tmpr_c#5514)#5528) AS max_abs_temp_diff#5493]
+
+(6) TakeOrderedAndProject
+Input [3]: [id#5519L, month#5525, max_abs_temp_diff#5493]
+Arguments: 10, [max_abs_temp_diff#5493 DESC NULLS LAST], [id#5519L, month#5525, max_abs_temp_diff#5493]
+
+(7) AdaptiveSparkPlan
+Output [3]: [id#5519L, month#5525, max_abs_temp_diff#5493]
+Arguments: isFinalPlan=false

@@ -1,0 +1,43 @@
+EXPLAIN EXTENDED
+== Parsed Logical Plan ==
+'GlobalLimit 10
++- 'LocalLimit 10
+   +- 'Sort ['booking_days_count DESC NULLS LAST], true
+      +- 'Aggregate ['hotel_id, 'year, 'month], ['hotel_id, 'year('booking_day) AS year#5585, 'month('booking_day) AS month#5586, 'count('booking_day) AS booking_days_count#5587]
+         +- 'SubqueryAlias __auto_generated_subquery_name
+            +- 'Project ['hotel_id, 'EXPLODE(CASE WHEN ('datediff('srch_co, 'srch_ci) >= 1) THEN 'sequence('srch_ci, 'srch_co, 1 days) ELSE 'array('srch_ci) END) AS booking_day#5584]
+               +- 'UnresolvedRelation [expedia_silver], [], false
+
+== Analyzed Logical Plan ==
+hotel_id: bigint, year: int, month: int, booking_days_count: bigint
+GlobalLimit 10
++- LocalLimit 10
+   +- Sort [booking_days_count#5587L DESC NULLS LAST], true
+      +- Aggregate [hotel_id#5632L, year(booking_day#5633), month(booking_day#5633)], [hotel_id#5632L, year(booking_day#5633) AS year#5585, month(booking_day#5633) AS month#5586, count(booking_day#5633) AS booking_days_count#5587L]
+         +- SubqueryAlias __auto_generated_subquery_name
+            +- Project [hotel_id#5632L, booking_day#5633]
+               +- Generate explode(CASE WHEN (datediff(srch_co#5626, srch_ci#5625) >= 1) THEN sequence(srch_ci#5625, srch_co#5626, Some(1 days), Some(Etc/UTC)) ELSE array(srch_ci#5625) END), false, [booking_day#5633]
+                  +- SubqueryAlias spark_catalog.spark_sql_database.expedia_silver
+                     +- Relation[id#5613L,date_time#5614,site_name#5615,posa_continent#5616,user_location_country#5617,user_location_region#5618,user_location_city#5619,orig_destination_distance#5620,user_id#5621,is_mobile#5622,is_package#5623,channel#5624,srch_ci#5625,srch_co#5626,srch_adults_cnt#5627,srch_children_cnt#5628,srch_rm_cnt#5629,srch_destination_id#5630,srch_destination_type_id#5631,hotel_id#5632L] parquet
+
+== Optimized Logical Plan ==
+GlobalLimit 10
++- LocalLimit 10
+   +- Sort [booking_days_count#5587L DESC NULLS LAST], true
+      +- Aggregate [hotel_id#5632L, _groupingexpression#5636, _groupingexpression#5637], [hotel_id#5632L, _groupingexpression#5636 AS year#5585, _groupingexpression#5637 AS month#5586, count(booking_day#5633) AS booking_days_count#5587L]
+         +- Project [hotel_id#5632L, booking_day#5633, year(booking_day#5633) AS _groupingexpression#5636, month(booking_day#5633) AS _groupingexpression#5637]
+            +- Generate explode(CASE WHEN (datediff(srch_co#5626, srch_ci#5625) >= 1) THEN sequence(srch_ci#5625, srch_co#5626, Some(1 days), Some(Etc/UTC)) ELSE array(srch_ci#5625) END), [0, 1], false, [booking_day#5633]
+               +- Project [srch_ci#5625, srch_co#5626, hotel_id#5632L]
+                  +- Filter ((size(CASE WHEN (datediff(srch_co#5626, srch_ci#5625) >= 1) THEN sequence(srch_ci#5625, srch_co#5626, Some(1 days), Some(Etc/UTC)) ELSE array(srch_ci#5625) END, true) > 0) AND isnotnull(CASE WHEN (datediff(srch_co#5626, srch_ci#5625) >= 1) THEN sequence(srch_ci#5625, srch_co#5626, Some(1 days), Some(Etc/UTC)) ELSE array(srch_ci#5625) END))
+                     +- Relation[id#5613L,date_time#5614,site_name#5615,posa_continent#5616,user_location_country#5617,user_location_region#5618,user_location_city#5619,orig_destination_distance#5620,user_id#5621,is_mobile#5622,is_package#5623,channel#5624,srch_ci#5625,srch_co#5626,srch_adults_cnt#5627,srch_children_cnt#5628,srch_rm_cnt#5629,srch_destination_id#5630,srch_destination_type_id#5631,hotel_id#5632L] parquet
+
+== Physical Plan ==
+AdaptiveSparkPlan isFinalPlan=false
++- TakeOrderedAndProject(limit=10, orderBy=[booking_days_count#5587L DESC NULLS LAST], output=[hotel_id#5632L,year#5585,month#5586,booking_days_count#5587L])
+   +- HashAggregate(keys=[hotel_id#5632L, _groupingexpression#5636, _groupingexpression#5637], functions=[finalmerge_count(merge count#5639L) AS count(booking_day#5633)#5634L], output=[hotel_id#5632L, year#5585, month#5586, booking_days_count#5587L])
+      +- Exchange hashpartitioning(hotel_id#5632L, _groupingexpression#5636, _groupingexpression#5637, 200), ENSURE_REQUIREMENTS, [id=#3161]
+         +- HashAggregate(keys=[hotel_id#5632L, _groupingexpression#5636, _groupingexpression#5637], functions=[partial_count(booking_day#5633) AS count#5639L], output=[hotel_id#5632L, _groupingexpression#5636, _groupingexpression#5637, count#5639L])
+            +- Project [hotel_id#5632L, booking_day#5633, year(booking_day#5633) AS _groupingexpression#5636, month(booking_day#5633) AS _groupingexpression#5637]
+               +- Generate explode(CASE WHEN (datediff(srch_co#5626, srch_ci#5625) >= 1) THEN sequence(srch_ci#5625, srch_co#5626, Some(1 days), Some(Etc/UTC)) ELSE array(srch_ci#5625) END), [hotel_id#5632L], false, [booking_day#5633]
+                  +- Filter ((size(CASE WHEN (datediff(srch_co#5626, srch_ci#5625) >= 1) THEN sequence(srch_ci#5625, srch_co#5626, Some(1 days), Some(Etc/UTC)) ELSE array(srch_ci#5625) END, true) > 0) AND isnotnull(CASE WHEN (datediff(srch_co#5626, srch_ci#5625) >= 1) THEN sequence(srch_ci#5625, srch_co#5626, Some(1 days), Some(Etc/UTC)) ELSE array(srch_ci#5625) END))
+                     +- FileScan parquet spark_sql_database.expedia_silver[srch_ci#5625,srch_co#5626,hotel_id#5632L] Batched: true, DataFilters: [(size(CASE WHEN (datediff(srch_co#5626, srch_ci#5625) >= 1) THEN sequence(srch_ci#5625, srch_co#..., Format: Parquet, Location: PreparedDeltaFileIndex[dbfs:/user/hive/warehouse/spark_sql_database.db/expedia_silver], PartitionFilters: [], PushedFilters: [], ReadSchema: struct<srch_ci:date,srch_co:date,hotel_id:bigint>

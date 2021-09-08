@@ -1,0 +1,33 @@
+EXPLAIN EXTENDED
+== Parsed Logical Plan ==
+'GlobalLimit 10
++- 'LocalLimit 10
+   +- 'Sort ['max_abs_temp_diff DESC NULLS LAST], true
+      +- 'Aggregate ['id, 'month], ['id, 'month, ('MAX('avg_tmpr_c) - 'MIN('avg_tmpr_c)) AS max_abs_temp_diff#5402]
+         +- 'UnresolvedRelation [hotel_weather_silver], [], false
+
+== Analyzed Logical Plan ==
+id: bigint, month: string, max_abs_temp_diff: double
+GlobalLimit 10
++- LocalLimit 10
+   +- Sort [max_abs_temp_diff#5402 DESC NULLS LAST], true
+      +- Aggregate [id#5428L, month#5434], [id#5428L, month#5434, (max(avg_tmpr_c#5423) - min(avg_tmpr_c#5423)) AS max_abs_temp_diff#5402]
+         +- SubqueryAlias spark_catalog.spark_sql_database.hotel_weather_silver
+            +- Relation[address#5422,avg_tmpr_c#5423,avg_tmpr_f#5424,city#5425,country#5426,geoHash#5427,id#5428L,latitude#5429,longitude#5430,name#5431,wthr_date#5432,year#5433,month#5434,day#5435] parquet
+
+== Optimized Logical Plan ==
+GlobalLimit 10
++- LocalLimit 10
+   +- Sort [max_abs_temp_diff#5402 DESC NULLS LAST], true
+      +- Aggregate [id#5428L, month#5434], [id#5428L, month#5434, (max(avg_tmpr_c#5423) - min(avg_tmpr_c#5423)) AS max_abs_temp_diff#5402]
+         +- Project [avg_tmpr_c#5423, id#5428L, month#5434]
+            +- Relation[address#5422,avg_tmpr_c#5423,avg_tmpr_f#5424,city#5425,country#5426,geoHash#5427,id#5428L,latitude#5429,longitude#5430,name#5431,wthr_date#5432,year#5433,month#5434,day#5435] parquet
+
+== Physical Plan ==
+AdaptiveSparkPlan isFinalPlan=false
++- TakeOrderedAndProject(limit=10, orderBy=[max_abs_temp_diff#5402 DESC NULLS LAST], output=[id#5428L,month#5434,max_abs_temp_diff#5402])
+   +- HashAggregate(keys=[id#5428L, month#5434], functions=[finalmerge_max(merge max#5440) AS max(avg_tmpr_c#5423)#5436, finalmerge_min(merge min#5442) AS min(avg_tmpr_c#5423)#5437], output=[id#5428L, month#5434, max_abs_temp_diff#5402])
+      +- Exchange hashpartitioning(id#5428L, month#5434, 200), ENSURE_REQUIREMENTS, [id=#2951]
+         +- HashAggregate(keys=[id#5428L, month#5434], functions=[partial_max(avg_tmpr_c#5423) AS max#5440, partial_min(avg_tmpr_c#5423) AS min#5442], output=[id#5428L, month#5434, max#5440, min#5442])
+            +- Project [avg_tmpr_c#5423, id#5428L, month#5434]
+               +- FileScan parquet spark_sql_database.hotel_weather_silver[avg_tmpr_c#5423,id#5428L,year#5433,month#5434,day#5435] Batched: true, DataFilters: [], Format: Parquet, Location: PreparedDeltaFileIndex[dbfs:/user/hive/warehouse/spark_sql_database.db/hotel_weather_silver], PartitionFilters: [], PushedFilters: [], ReadSchema: struct<avg_tmpr_c:double,id:bigint>

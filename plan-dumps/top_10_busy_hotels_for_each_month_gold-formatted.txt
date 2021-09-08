@@ -1,0 +1,56 @@
+EXPLAIN FORMATTED
+== Physical Plan ==
+AdaptiveSparkPlan (9)
++- TakeOrderedAndProject (8)
+   +- HashAggregate (7)
+      +- Exchange (6)
+         +- HashAggregate (5)
+            +- Project (4)
+               +- Generate (3)
+                  +- Filter (2)
+                     +- Scan parquet spark_sql_database.expedia_silver (1)
+
+
+(1) Scan parquet spark_sql_database.expedia_silver
+Output [3]: [srch_ci#5722, srch_co#5723, hotel_id#5729L]
+Batched: true
+Location: PreparedDeltaFileIndex [dbfs:/user/hive/warehouse/spark_sql_database.db/expedia_silver]
+ReadSchema: struct<srch_ci:date,srch_co:date,hotel_id:bigint>
+
+(2) Filter
+Input [3]: [srch_ci#5722, srch_co#5723, hotel_id#5729L]
+Condition : ((size(CASE WHEN (datediff(srch_co#5723, srch_ci#5722) >= 1) THEN sequence(srch_ci#5722, srch_co#5723, Some(1 days), Some(Etc/UTC)) ELSE array(srch_ci#5722) END, true) > 0) AND isnotnull(CASE WHEN (datediff(srch_co#5723, srch_ci#5722) >= 1) THEN sequence(srch_ci#5722, srch_co#5723, Some(1 days), Some(Etc/UTC)) ELSE array(srch_ci#5722) END))
+
+(3) Generate
+Input [3]: [srch_ci#5722, srch_co#5723, hotel_id#5729L]
+Arguments: explode(CASE WHEN (datediff(srch_co#5723, srch_ci#5722) >= 1) THEN sequence(srch_ci#5722, srch_co#5723, Some(1 days), Some(Etc/UTC)) ELSE array(srch_ci#5722) END), [hotel_id#5729L], false, [booking_day#5730]
+
+(4) Project
+Output [4]: [hotel_id#5729L, booking_day#5730, year(booking_day#5730) AS _groupingexpression#5733, month(booking_day#5730) AS _groupingexpression#5734]
+Input [2]: [hotel_id#5729L, booking_day#5730]
+
+(5) HashAggregate
+Input [4]: [hotel_id#5729L, booking_day#5730, _groupingexpression#5733, _groupingexpression#5734]
+Keys [3]: [hotel_id#5729L, _groupingexpression#5733, _groupingexpression#5734]
+Functions [1]: [partial_count(booking_day#5730) AS count#5736L]
+Aggregate Attributes [1]: [count#5735L]
+Results [4]: [hotel_id#5729L, _groupingexpression#5733, _groupingexpression#5734, count#5736L]
+
+(6) Exchange
+Input [4]: [hotel_id#5729L, _groupingexpression#5733, _groupingexpression#5734, count#5736L]
+Arguments: hashpartitioning(hotel_id#5729L, _groupingexpression#5733, _groupingexpression#5734, 200), ENSURE_REQUIREMENTS, [id=#3290]
+
+(7) HashAggregate
+Input [4]: [hotel_id#5729L, _groupingexpression#5733, _groupingexpression#5734, count#5736L]
+Keys [3]: [hotel_id#5729L, _groupingexpression#5733, _groupingexpression#5734]
+Functions [1]: [finalmerge_count(merge count#5736L) AS count(booking_day#5730)#5731L]
+Aggregate Attributes [1]: [count(booking_day#5730)#5731L]
+Results [4]: [hotel_id#5729L, _groupingexpression#5733 AS year#5682, _groupingexpression#5734 AS month#5683, count(booking_day#5730)#5731L AS booking_days_count#5684L]
+
+(8) TakeOrderedAndProject
+Input [4]: [hotel_id#5729L, year#5682, month#5683, booking_days_count#5684L]
+Arguments: 10, [booking_days_count#5684L DESC NULLS LAST], [hotel_id#5729L, year#5682, month#5683, booking_days_count#5684L]
+
+(9) AdaptiveSparkPlan
+Output [4]: [hotel_id#5729L, year#5682, month#5683, booking_days_count#5684L]
+Arguments: isFinalPlan=false

@@ -1,0 +1,110 @@
+EXPLAIN FORMATTED
+== Physical Plan ==
+AdaptiveSparkPlan (20)
++- Window (19)
+   +- Project (18)
+      +- Filter (17)
+         +- Window (16)
+            +- Sort (15)
+               +- Window (14)
+                  +- Sort (13)
+                     +- Exchange (12)
+                        +- Project (11)
+                           +- BroadcastHashJoin Inner BuildRight (10)
+                              :- Project (5)
+                              :  +- Filter (4)
+                              :     +- Generate (3)
+                              :        +- Filter (2)
+                              :           +- Scan parquet spark_sql_database.expedia_silver (1)
+                              +- BroadcastExchange (9)
+                                 +- Project (8)
+                                    +- Filter (7)
+                                       +- Scan parquet spark_sql_database.hotel_weather_silver (6)
+
+
+(1) Scan parquet spark_sql_database.expedia_silver
+Output [4]: [id#5975L, srch_ci#5987, srch_co#5988, hotel_id#5994L]
+Batched: true
+Location: PreparedDeltaFileIndex [dbfs:/user/hive/warehouse/spark_sql_database.db/expedia_silver]
+PushedFilters: [IsNotNull(srch_co), IsNotNull(srch_ci), IsNotNull(hotel_id)]
+ReadSchema: struct<id:bigint,srch_ci:date,srch_co:date,hotel_id:bigint>
+
+(2) Filter
+Input [4]: [id#5975L, srch_ci#5987, srch_co#5988, hotel_id#5994L]
+Condition : (((((isnotnull(srch_co#5988) AND isnotnull(srch_ci#5987)) AND (datediff(srch_co#5988, srch_ci#5987) > 7)) AND (size(CASE WHEN (datediff(srch_co#5988, srch_ci#5987) >= 1) THEN sequence(srch_ci#5987, srch_co#5988, Some(1 days), Some(Etc/UTC)) ELSE array(srch_ci#5987) END, true) > 0)) AND isnotnull(CASE WHEN (datediff(srch_co#5988, srch_ci#5987) >= 1) THEN sequence(srch_ci#5987, srch_co#5988, Some(1 days), Some(Etc/UTC)) ELSE array(srch_ci#5987) END)) AND isnotnull(hotel_id#5994L))
+
+(3) Generate
+Input [4]: [id#5975L, srch_ci#5987, srch_co#5988, hotel_id#5994L]
+Arguments: explode(CASE WHEN (datediff(srch_co#5988, srch_ci#5987) >= 1) THEN sequence(srch_ci#5987, srch_co#5988, Some(1 days), Some(Etc/UTC)) ELSE array(srch_ci#5987) END), [id#5975L, srch_ci#5987, srch_co#5988, hotel_id#5994L], false, [booking_day#6010]
+
+(4) Filter
+Input [5]: [id#5975L, srch_ci#5987, srch_co#5988, hotel_id#5994L, booking_day#6010]
+Condition : isnotnull(booking_day#6010)
+
+(5) Project
+Output [5]: [hotel_id#5994L, id#5975L AS booking_id#5930L, srch_ci#5987, srch_co#5988, booking_day#6010]
+Input [5]: [id#5975L, srch_ci#5987, srch_co#5988, hotel_id#5994L, booking_day#6010]
+
+(6) Scan parquet spark_sql_database.hotel_weather_silver
+Output [6]: [avg_tmpr_c#5996, id#6001L, wthr_date#6005, year#6006, month#6007, day#6008]
+Batched: true
+Location: PreparedDeltaFileIndex [dbfs:/user/hive/warehouse/spark_sql_database.db/hotel_weather_silver]
+PushedFilters: [IsNotNull(id), IsNotNull(wthr_date)]
+ReadSchema: struct<avg_tmpr_c:double,id:bigint,wthr_date:date>
+
+(7) Filter
+Input [6]: [avg_tmpr_c#5996, id#6001L, wthr_date#6005, year#6006, month#6007, day#6008]
+Condition : (isnotnull(id#6001L) AND isnotnull(wthr_date#6005))
+
+(8) Project
+Output [3]: [avg_tmpr_c#5996, id#6001L, wthr_date#6005]
+Input [6]: [avg_tmpr_c#5996, id#6001L, wthr_date#6005, year#6006, month#6007, day#6008]
+
+(9) BroadcastExchange
+Input [3]: [avg_tmpr_c#5996, id#6001L, wthr_date#6005]
+Arguments: HashedRelationBroadcastMode(ArrayBuffer(input[1, bigint, true], input[2, date, true]),false), [id=#3717]
+
+(10) BroadcastHashJoin
+Left keys [2]: [hotel_id#5994L, booking_day#6010]
+Right keys [2]: [id#6001L, wthr_date#6005]
+Join condition: None
+
+(11) Project
+Output [7]: [hotel_id#5994L, booking_id#5930L, srch_ci#5987, srch_co#5988, booking_day#6010, avg_tmpr_c#5996, wthr_date#6005]
+Input [8]: [hotel_id#5994L, booking_id#5930L, srch_ci#5987, srch_co#5988, booking_day#6010, avg_tmpr_c#5996, id#6001L, wthr_date#6005]
+
+(12) Exchange
+Input [7]: [hotel_id#5994L, booking_id#5930L, srch_ci#5987, srch_co#5988, booking_day#6010, avg_tmpr_c#5996, wthr_date#6005]
+Arguments: hashpartitioning(hotel_id#5994L, booking_id#5930L, 200), ENSURE_REQUIREMENTS, [id=#3721]
+
+(13) Sort
+Input [7]: [hotel_id#5994L, booking_id#5930L, srch_ci#5987, srch_co#5988, booking_day#6010, avg_tmpr_c#5996, wthr_date#6005]
+Arguments: [hotel_id#5994L ASC NULLS FIRST, booking_id#5930L ASC NULLS FIRST], false, 0
+
+(14) Window
+Input [7]: [hotel_id#5994L, booking_id#5930L, srch_ci#5987, srch_co#5988, booking_day#6010, avg_tmpr_c#5996, wthr_date#6005]
+Arguments: [hotel_id#5994L, booking_id#5930L, srch_ci#5987, srch_co#5988, booking_day#6010, avg_tmpr_c#5996, wthr_date#6005, avg(avg_tmpr_c#5996) windowspecdefinition(hotel_id#5994L, booking_id#5930L, specifiedwindowframe(RowFrame, unboundedpreceding$(), unboundedfollowing$())) AS _we_1_0#6014], [hotel_id#5994L, booking_id#5930L]
+
+(15) Sort
+Input [8]: [hotel_id#5994L, booking_id#5930L, srch_ci#5987, srch_co#5988, booking_day#6010, avg_tmpr_c#5996, wthr_date#6005, _we_1_0#6014]
+Arguments: [hotel_id#5994L ASC NULLS FIRST, booking_id#5930L ASC NULLS FIRST, booking_day#6010 ASC NULLS FIRST], false, 0
+
+(16) Window
+Input [8]: [hotel_id#5994L, booking_id#5930L, srch_ci#5987, srch_co#5988, booking_day#6010, avg_tmpr_c#5996, wthr_date#6005, _we_1_0#6014]
+Arguments: [hotel_id#5994L, booking_id#5930L, srch_ci#5987, srch_co#5988, wthr_date#6005, first_value(avg_tmpr_c#5996, false) windowspecdefinition(hotel_id#5994L, booking_id#5930L, booking_day#6010 ASC NULLS FIRST, specifiedwindowframe(RowFrame, unboundedpreceding$(), unboundedfollowing$())) AS first_day_tmpr_c#5932, last_value(avg_tmpr_c#5996, false) windowspecdefinition(hotel_id#5994L, booking_id#5930L, booking_day#6010 ASC NULLS FIRST, specifiedwindowframe(RowFrame, unboundedpreceding$(), unboundedfollowing$())) AS last_day_tmpr_c#5933, _we_1_0#6014 AS booking_avg_tmpr_c#5934], [hotel_id#5994L, booking_id#5930L], [booking_day#6010 ASC NULLS FIRST]
+
+(17) Filter
+Input [8]: [hotel_id#5994L, booking_id#5930L, srch_ci#5987, srch_co#5988, wthr_date#6005, first_day_tmpr_c#5932, last_day_tmpr_c#5933, booking_avg_tmpr_c#5934]
+Condition : ((srch_ci#5987 = wthr_date#6005) OR (srch_co#5988 = wthr_date#6005))
+
+(18) Project
+Output [7]: [hotel_id#5994L, booking_id#5930L, srch_ci#5987, srch_co#5988, first_day_tmpr_c#5932, last_day_tmpr_c#5933, booking_avg_tmpr_c#5934]
+Input [8]: [hotel_id#5994L, booking_id#5930L, srch_ci#5987, srch_co#5988, wthr_date#6005, first_day_tmpr_c#5932, last_day_tmpr_c#5933, booking_avg_tmpr_c#5934]
+
+(19) Window
+Input [7]: [hotel_id#5994L, booking_id#5930L, srch_ci#5987, srch_co#5988, first_day_tmpr_c#5932, last_day_tmpr_c#5933, booking_avg_tmpr_c#5934]
+Arguments: [hotel_id#5994L, booking_id#5930L, srch_ci#5987, srch_co#5988, booking_avg_tmpr_c#5934, CASE WHEN (count(1) windowspecdefinition(hotel_id#5994L, booking_id#5930L, specifiedwindowframe(RowFrame, unboundedpreceding$(), unboundedfollowing$())) = 2) THEN cast((last_day_tmpr_c#5933 - first_day_tmpr_c#5932) as string) ELSE Start or end date not found for weather trend calculation END AS booking_weather_trend_tmpr_c#5929], [hotel_id#5994L, booking_id#5930L]
+
+(20) AdaptiveSparkPlan
+Output [6]: [hotel_id#5994L, booking_id#5930L, srch_ci#5987, srch_co#5988, booking_avg_tmpr_c#5934, booking_weather_trend_tmpr_c#5929]
+Arguments: isFinalPlan=false
