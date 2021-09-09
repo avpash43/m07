@@ -209,7 +209,7 @@ check_start_and_end_date AS (
   FROM joined_tables
   WHERE srch_ci == wthr_date OR srch_co == wthr_date
 )
-SELECT
+SELECT DISTINCT
   hotel_id,
   booking_id,
   srch_ci,

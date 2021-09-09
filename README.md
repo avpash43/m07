@@ -1,22 +1,26 @@
 # Data Mart Vusualisation:
 
 ###### Plan damps stored in 'plan-dumps' folder.
+###### We can look at SparkUI query plan for analyse 'bottlenecks'.
+###### As you can see 'BroadcastExchange' before getting joined tables and 'Sort' operation was expensive.
+
+![Alt text](images/Databricks-details-for-query.jpg?raw=true "Title")
 
 ###### Result files stored in ADLS:
 
-![Alt text](visualisation/target_files.jpg?raw=true "Title")
+![Alt text](images/target_files.jpg?raw=true "Title")
 
 Top 10 hotels with max absolute temperature difference by month:
 
-![Alt text](visualisation/max_avg_tmpr_c_for_bookings.jpg?raw=true "Title")
+![Alt text](images/max_avg_tmpr_c_for_bookings.jpg?raw=true "Title")
 
 Top 10 busy (e.g., with the biggest visits count) hotels for each month:
 
-![Alt text](visualisation/top_10_busy_hotels_for_each_month_gold.jpg?raw=true "Title")
+![Alt text](images/top_10_busy_hotels_for_each_month_gold.jpg?raw=true "Title")
 
 Wweather trend:
 
-![Alt text](visualisation/top_10_hotels_with_max_abs_temp_diff_gold.jpg?raw=true "Title")
+![Alt text](images/top_10_hotels_with_max_abs_temp_diff_gold.jpg?raw=true "Title")
 
 
 * Add your code in `src/main/` if needed
