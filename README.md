@@ -4,7 +4,7 @@
 ###### We can look at SparkUI query plan for analyse 'bottlenecks'.
 ###### As you can see 'BroadcastExchange' before getting joined tables and 'Sort' operation was expensive.
 
-![Alt text](images/Databricks-details-for-query.jpg?raw=true "Title")
+![Alt text](images/Databricks-details-for-query.png?raw=true "Title")
 
 ###### Result files stored in ADLS:
 
